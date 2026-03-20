@@ -1,0 +1,138 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+using namespace std;
+
+class Vehicule{
+    protected:
+        int TimpTotal = 0, Tarif = 0, ore = 0, minute = 0;
+        string NumIn, OraIntrare, OraIesire, Vehicul;
+    
+    public:
+        void SetVehicul(string OIn, string OIs, string NIn, string TipVehicul) { 
+            Vehicul = TipVehicul;
+            OraIntrare = OIn;
+            OraIesire = OIs;
+            NumIn = NIn;
+        };
+    
+        void TimpParcat() { 
+            int OreIntrare = stoi(OraIntrare.substr(0, 2)) * 3600; 
+            int MinuteIntrare = stoi(OraIntrare.substr(3, 2))* 60;
+            int OreIesire = stoi(OraIesire.substr(0, 2)) * 3600;
+            int MinuteIesire = stoi(OraIesire.substr(3, 2)) * 60;
+            
+            int Intrare = OreIntrare + MinuteIntrare;
+            int Iesire = OreIesire + MinuteIesire;
+            TimpTotal = Iesire - Intrare;
+            ore = TimpTotal/3600;
+            minute = (TimpTotal % 3600) / 60;
+        };
+        
+        virtual void CalculTarif() = 0;
+        
+        void Afisare(){
+            cout<<"Tip vehicul: "<<Vehicul<<endl;
+            cout<<"Numar de inmatriculare: "<<NumIn<<endl;
+            cout<<"Ora intratii: "<<OraIntrare<<endl;
+            cout<<"Ora iesirii: "<<OraIesire<<endl;
+            cout<<"Timp parcat: "<<ore<<":"<<minute<<endl;
+            cout<<"Tarif: "<<Tarif<<" lei"<<endl;
+            cout<<endl;
+        }
+        
+        virtual ~Vehicule() {}
+}; 
+
+class Masina : public Vehicule{
+    public:
+    void CalculTarif() {
+            for(int i = 0; i < ore; i++){
+                Tarif +=5;
+            }
+            
+            if(minute > 0){
+             Tarif+=5;  
+            }
+        };
+};
+
+class Motocicleta : public Vehicule{
+    public:
+    void CalculTarif() {
+            for(int i = 0; i < ore; i++){
+                Tarif +=3;
+            }
+            
+            if(minute > 0){
+             Tarif+=3;  
+            }
+        };
+};
+
+class Camion : public Vehicule{
+    public:
+    void CalculTarif() {
+            for(int i = 0; i < ore; i++){
+                Tarif +=10;
+            }
+            
+            if(minute > 0){
+             Tarif+=8;  
+            }
+        };
+};
+
+class Bicicleta : public Vehicule{
+    public:
+    void CalculTarif() {
+            if (ore > 2){
+                Tarif = (ore - 2) * 3;
+                if(minute > 0) Tarif+=3;
+            }
+    }
+};
+
+int main()
+{
+    string OIn, OIs, NIn, TipVehicul;
+     
+    vector<Vehicule*> vehicule;
+    
+    ifstream fin("Vehicule.txt");
+    
+    if(!fin){
+        cout << "Eroare la deschiderea fisierului!";
+        return 1;
+    }
+
+    
+    while(fin>>TipVehicul>>NIn>>OIn>>OIs){
+        Vehicule* v = nullptr;
+        
+        if (TipVehicul == "Masina") v = new Masina();
+        else
+        if (TipVehicul == "Motocicleta") v = new Motocicleta();
+        else 
+        if (TipVehicul == "Camion") v = new Camion();
+        else 
+        if (TipVehicul == "Bicicleta") v = new Bicicleta();
+        
+        if(v != nullptr){
+            v->SetVehicul(OIn, OIs, NIn, TipVehicul);
+            v->TimpParcat();
+            v->CalculTarif();
+            v->Afisare();
+            vehicule.push_back(v);
+        }
+    }
+    
+    fin.close();
+    
+    for(int i = 0; i < vehicule.size(); i++){
+        delete vehicule[i];
+    }
+    
+    return 0;
+}
